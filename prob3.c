@@ -30,19 +30,11 @@ void SIGINT_handler(int signo, siginfo_t *info, void *context){
 }
 
 void printPending(sigset_t pending) {
+    sigpending(&pending);
     for(int sig = 1; sig < NSIG; sig++) {
         if (sigismember(&pending, sig)) {
             printf("[Thread %ld] Signal %d is pending\n", gettid(), sig);
         }
-    }
-}
-
-void makeThreads(pthread_t* threads, int num_threads) {
-    for (int i = 0; i < num_threads; i++) {
-        if (i < num_threads / 2)
-            pthread_create(threads[i], NULL, proc, NULL);
-        else
-            pthread_create(threads[i], NULL, proc2, NULL);
     }
 }
 
@@ -83,7 +75,6 @@ void* proc(void* arg) {
 
 void* proc2(void* arg) {
     sigset_t pending;
-    sigpending(&pending);
     printf("created thread: %ld\n", gettid());
     sleep(10);
 
@@ -125,6 +116,15 @@ void* proc2(void* arg) {
 
 pthread_t main_thread;
 pid_t mainTid;
+
+void makeThreads(pthread_t* threads, int num_threads) {
+    for (int i = 0; i < num_threads; i++) {
+        if (i < num_threads / 2)
+            pthread_create(threads[i], NULL, proc, NULL);
+        else
+            pthread_create(threads[i], NULL, proc2, NULL);
+    }
+}
 
 int main(int argc, char *argv[]) {
     //setup pending
