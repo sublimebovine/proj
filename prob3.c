@@ -54,6 +54,14 @@ void* proc(void* arg) {
     for (int i = 0; i <= 10; i++) {
         sum += i * tid;
 
+        sigset_t pending;
+        sigpending(&pending);
+        for(int sig = 1; sig < NSIG; sig++) {
+             if (sigismember(&pending, sig)) {
+                 printf("[Thread %ld] Signal %d is pending\n", gettid(), sig);
+             }
+        }
+
         // char buffer[64];
         // int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
         // write(STDOUT_FILENO, buffer, len);
