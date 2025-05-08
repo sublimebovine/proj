@@ -77,8 +77,8 @@ void* proc(void* arg) {
     pid_t pid = getpid();
     int sum = 0;
 
-    for (int i = 0; i <= 10*tid; i++) {
-        sum += i;
+    for (int i = 0; i <= 10; i++) {
+        sum += i * tid;
 
         char buffer[64];
         int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
@@ -100,41 +100,41 @@ int main(int argc, char *argv[]) {
     //signal(SIGINT, SIGINT_handler);
 
     //make threads
-    pthread_t thread1;
-    pthread_t thread2;
-    pthread_t thread3;
-    pthread_t thread4;
+    pthread_t threads[4];
+    for(int i = 0; i < 4; i++) {
+        pthread_create(&threads[i], NULL, proc, NULL);
+        printf("thread%d: %p at memory address: %p\n", i,(void*)threads[i],(void*)&threads[i]);      
+    }
+
+    sleep(1);
+
+    for(int i = 0; i < 4; i++) {
+        printf("Sending SIGINT to thread%d: %p\n",i, (void*)threads[i]);
+        pthread_kill(threads[i], SIGINT);
+        sleep(1);
+        printf("Sending SIGCHLD to thread%d: %p\n",i, (void*)threads[i]);
+        pthread_kill(threads[i], SIGCHLD);
+        sleep(1);
+        printf("Sending SIGHUP to thread%d: %p\n", (void*)threads[i]);
+        pthread_kill(threads[i], SIGHUP);
+        sleep(1);
+        printf("Sending SIGTSTP to thread%d: %p\n", (void*)threads[i]);
+        pthread_kill(threads[i], SIGTSTP);
+        sleep(1);
+        printf("Sending SIGSEGV to thread%d: %p\n",i, (void*)threads[i]);
+        pthread_kill(threads[i], SIGSEGV);
+        sleep(1);
+        printf("Sending SIGFPE to thread%d: %p\n",i, (void*)threads[i]);
+        pthread_kill(threads[i], SIGFPE);
+        sleep(1);
+    }
+
+    sleep(1);
+
+    for(int i = 0; i < 4; i++) {
+        pthread_join(threads[i], NULL);
+    }
     
-    pthread_create(&thread1, NULL, proc, NULL);
-    pthread_create(&thread2, NULL, proc, NULL);
-    pthread_create(&thread3, NULL, proc, NULL);
-    pthread_create(&thread4, NULL, proc, NULL);
-
-    printf("thread1: %p at memory address: %p\n",(void*)thread1,(void*)&thread1);
-    printf("thread2: %p at memory address: %p\n",(void*)thread2,(void*)&thread2);
-    printf("thread3: %p at memory address: %p\n",(void*)thread3,(void*)&thread3);
-    printf("thread4: %p at memory address: %p\n",(void*)thread4,(void*)&thread4);
-
-    sleep(1);
-
-    printf("Sending SIGINT to thread1: %p\n", (void*)thread1);
-    pthread_kill(thread1, SIGINT);
-    sleep(1);
-    printf("Sending SIGCHLD to thread2: %p\n", (void*)thread2);
-    pthread_kill(thread2, SIGCHLD);
-    sleep(1);
-    printf("Sending SIGHUP to thread3: %p\n", (void*)thread3);
-    pthread_kill(thread3, SIGHUP);
-    sleep(1);
-    printf("Sending SIGTSTP to thread4: %p\n", (void*)thread4);
-    pthread_kill(thread4, SIGTSTP);
-    sleep(1);
-
-    pthread_join(thread1, NULL);
-    pthread_join(thread2, NULL);
-    pthread_join(thread3, NULL);
-    pthread_join(thread4, NULL);
-
     sigset_t emptyset;
     sigemptyset(&emptyset);
     pthread_sigmask(SIG_SETMASK, &emptyset, NULL);
