@@ -120,9 +120,9 @@ pid_t mainTid;
 void makeThreads(pthread_t* threads, int num_threads) {
     for (int i = 0; i < num_threads; i++) {
         if (i < num_threads / 2)
-            pthread_create(threads[i], NULL, proc, NULL);
+            pthread_create(&threads[i], NULL, proc, NULL);
         else
-            pthread_create(threads[i], NULL, proc2, NULL);
+            pthread_create(&threads[i], NULL, proc2, NULL);
     }
 }
 
