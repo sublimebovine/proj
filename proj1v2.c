@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -41,44 +40,12 @@ void* proc(void* arg) {
         sigfillset(&mask_set);
         
         sigdelset(&mask_set, SIGINT);
-        sigdelset(&mask_set, SIGQUIT);
-        sigdelset(&mask_set, SIGTSTP);
-
-        pthread_sigmask(SIG_SETMASK, &mask_set, NULL);
-    //
-
-    pid_t tid = gettid();
-    pid_t pid = getpid();
-    int sum = 0;
-
-    for (int i = 0; i <= 10; i++) {
-        sum += i * tid;
-
-        char buffer[64];
-        int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
-        write(STDOUT_FILENO, buffer, len);
-
-        sleep(1);
-    }
-    
-}
-
-void* proc2(void* arg) {
-    sleep(1);
-
-    // Set up signal handling for threads
-        sigset_t mask_set;
-
-        sigfillset(&mask_set);
-
         sigdelset(&mask_set, SIGCHLD);
         sigdelset(&mask_set, SIGHUP);
         sigdelset(&mask_set, SIGTSTP);
         sigdelset(&mask_set, SIGSEGV);
         sigdelset(&mask_set, SIGFPE);
-        //all other signals are still blocked from main thread
-        //blocked signals include SIGHUP, SIGTSTP
-        
+
         pthread_sigmask(SIG_SETMASK, &mask_set, NULL);
     //
 
@@ -95,9 +62,9 @@ void* proc2(void* arg) {
 
         sleep(1);
     }
-
     
 }
+
 
 int main(int argc, char *argv[]) {
     //ignore all signals
@@ -122,12 +89,12 @@ int main(int argc, char *argv[]) {
 
 
 
-    static pthread_t main_thread = pthread_self();
-    static pid_t mainTid = gettid();
+    pthread_t main_thread = pthread_self();
+    pid_t mainTid = gettid();
     printf("Main thread ID: %d, Pid: %d\n", mainTid, getpid());
 
     //make threads
-        static pthread_t threads[4];
+        pthread_t threads[4];
         for (int i = 0; i < 4; i++) {
             if (i < 2)
                 pthread_create(&threads[i], NULL, proc, NULL);
