@@ -29,9 +29,27 @@ void SIGINT_handler(int signo, siginfo_t *info, void *context){
     }
 }
 
+void printPending(sigset_t pending) {
+    for(int sig = 1; sig < NSIG; sig++) {
+        if (sigismember(&pending, sig)) {
+            printf("[Thread %ld] Signal %d is pending\n", gettid(), sig);
+        }
+    }
+}
+
+void makeThreads(pthread_t* threads, int num_threads) {
+    for (int i = 0; i < num_threads; i++) {
+        if (i < num_threads / 2)
+            pthread_create(threads[i], NULL, proc, NULL);
+        else
+            pthread_create(threads[i], NULL, proc2, NULL);
+    }
+}
 
 
 void* proc(void* arg) {
+    sigset_t pending;
+    sigpending(&pending);
     printf("created thread: %ld\n", gettid());
     sleep(10);
     // Set up signal handling for threads
@@ -54,15 +72,7 @@ void* proc(void* arg) {
     for (int i = 0; i <= 10; i++) {
         sum += i * tid;
 
-        sigset_t pending;
-        sigpending(&pending);
-        for(int sig = 1; sig < NSIG; sig++) {
-             if (sigismember(&pending, sig)) {
-                 printf("[Thread %ld] Signal %d is pending\n", gettid(), sig);
-             }
-        }
-
-        // char buffer[64];
+        printPending(pending);
         // int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
         // write(STDOUT_FILENO, buffer, len);
 
@@ -72,6 +82,8 @@ void* proc(void* arg) {
 }
 
 void* proc2(void* arg) {
+    sigset_t pending;
+    sigpending(&pending);
     printf("created thread: %ld\n", gettid());
     sleep(10);
 
@@ -99,15 +111,8 @@ void* proc2(void* arg) {
 
     for (int i = 0; i <= 10; i++) {
         sum += i * tid;
-
-         //see peding
-        sigset_t pending;
-        sigpending(&pending);
-        for(int sig = 1; sig < NSIG; sig++) {
-             if (sigismember(&pending, sig)) {
-                 printf("[Thread %ld] Signal %d is pending\n", gettid(), sig);
-             }
-        }
+        //see peding
+        printPending(pending);
         // char buffer[64];
         // int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
         // write(STDOUT_FILENO, buffer, len);
@@ -122,6 +127,9 @@ pthread_t main_thread;
 pid_t mainTid;
 
 int main(int argc, char *argv[]) {
+    //setup pending
+        sigset_t pending;
+        sigpending(&pending);
     //block SIGINT, SIGQUIT, SIGTSTP
         sigset_t mask_set;
         
@@ -173,17 +181,13 @@ int main(int argc, char *argv[]) {
     main_thread = pthread_self();
     mainTid = gettid();
     printf("Main thread ID: %d, Pid: %d\n", mainTid, getpid());
-
+    
     sleep(10);
-
+    printf("Pending for main:\n");
+    printPending(pending);
     //make threads
         static pthread_t threads[4];
-        for (int i = 0; i < 4; i++) {
-            if (i < 2)
-                pthread_create(&threads[i], NULL, proc, NULL);
-            else
-                pthread_create(&threads[i], NULL, proc2, NULL);
-        }
+        makeThreads(threads, 4);
     //
     
     //signal(SIGINT, SIGINT_handler);
