@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 
-#if __linux
+#if __linux__
     #include <sys/syscall.h>
     #define gettid() syscall(SYS_gettid)
 #elif defined(_WIN32) || defined(_WIN64)
@@ -25,11 +25,11 @@ void SIGINT_handler(int signo, siginfo_t *info, void *context){
 
     //write(STDOUT_FILENO,"hi I",2);
     printf("Received signal %d\n", signo);
-    printf("Recipient PID: %d\nRecipient TID: %d\n", getpid(), gettid());   // or syscall(SYS_gettid) for thread-level
+    printf("Recipient PID: %d\nRecipient TID: %ld\n", getpid(), gettid());
     if (info != NULL) {
         printf("Sender PID: %d\n", info->si_pid);
     }
-    return NULL;
+    return;
 }
 
 
@@ -87,7 +87,7 @@ void* proc(void* arg) {
         sleep(1);
     }
     
-    return NULL;
+    return;
 }
 
 int main(int argc, char *argv[]) {
@@ -138,5 +138,7 @@ int main(int argc, char *argv[]) {
     sigset_t emptyset;
     sigemptyset(&emptyset);
     pthread_sigmask(SIG_SETMASK, &emptyset, NULL);
+
+    sleep(10);
 
 }
