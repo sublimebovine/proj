@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #if __linux
-#include <sys/syscall.h>
+    #include <sys/syscall.h>
 #elif defined(_WIN32) || defined(_WIN64)
     #include <windows.h>       // Or something like it. 
     #define gettid() GetCurrentThreadId()
@@ -22,15 +24,14 @@ void SIGINT_handler(int signo, siginfo_t *info, void *context){
 
     //write(STDOUT_FILENO,"hi I",2);
     printf("Received signal %d\n", signo);
-    printf("Recipient PID: %d\nRecipient TID: %d", getpid(), gettid());   // or syscall(SYS_gettid) for thread-level
+    printf("Recipient PID: %d\nRecipient TID: %d\n", getpid(), gettid());   // or syscall(SYS_gettid) for thread-level
     if (info != NULL) {
         printf("Sender PID: %d\n", info->si_pid);
     }
     return NULL;
 }
 
-#include <unistd.h>
-#include <sys/syscall.h>
+
 
 void* proc(void* arg) {
     // Set up signal handling for threads
@@ -51,6 +52,7 @@ void* proc(void* arg) {
 
     //setup handler
         struct sigaction sigac;
+        memset(&sigac, 0, sizeof(sigac));
         sigac.sa_sigaction = SIGINT_handler;
         sigac.sa_flags = SA_SIGINFO | SA_RESTART;
 
@@ -108,9 +110,11 @@ int main(int argc, char *argv[]) {
     pthread_create(&thread4, NULL, proc, NULL);
 
     printf("thread1: %p at memory address: %p\n",(void*)thread1,(void*)&thread1);
-    printf("thread1: %p at memory address: %p\n",(void*)thread2,(void*)&thread2);
-    printf("thread1: %p at memory address: %p\n",(void*)thread3,(void*)&thread3);
-    printf("thread1: %p at memory address: %p\n",(void*)thread4,(void*)&thread4);
+    printf("thread2: %p at memory address: %p\n",(void*)thread2,(void*)&thread2);
+    printf("thread3: %p at memory address: %p\n",(void*)thread3,(void*)&thread3);
+    printf("thread4: %p at memory address: %p\n",(void*)thread4,(void*)&thread4);
+
+    sleep(1);
 
     printf("Sending SIGINT to thread1: %p\n", (void*)thread1);
     pthread_kill(thread1, SIGINT);
