@@ -21,8 +21,6 @@
 #endif
 
 void SIGINT_handler(int signo, siginfo_t *info, void *context){
-    struct sigaction sigac;
-
     //write(STDOUT_FILENO,"hi I",2);
     printf("Received signal %d\n", signo);
     printf("\tRecipient PID: %d\n\tRecipient TID: %ld\n", getpid(), gettid());
@@ -161,7 +159,7 @@ int main(int argc, char *argv[]) {
     //
 
 
-    sleep(1);
+    sleep(30);
 
     // for(int i = 0; i < 4; i++) {
     //     printf("Sending SIGINT to thread%d: %p\n",i, (void*)threads[i]);
