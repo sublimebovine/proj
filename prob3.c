@@ -21,8 +21,6 @@
 #endif
 
 void SIGINT_handler(int signo, siginfo_t *info, void *context){
-    struct sigaction sigac;
-
     //write(STDOUT_FILENO,"hi I",2);
     printf("Received signal %d\n", signo);
     printf("\tRecipient PID: %d\n\tRecipient TID: %ld\n", getpid(), gettid());
@@ -55,9 +53,9 @@ void* proc(void* arg) {
     for (int i = 0; i <= 10; i++) {
         sum += i * tid;
 
-        char buffer[64];
-        int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
-        write(STDOUT_FILENO, buffer, len);
+        // char buffer[64];
+        // int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
+        // write(STDOUT_FILENO, buffer, len);
 
         sleep(1);
     }
@@ -89,9 +87,9 @@ void* proc2(void* arg) {
     for (int i = 0; i <= 10; i++) {
         sum += i * tid;
 
-        char buffer[64];
-        int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
-        write(STDOUT_FILENO, buffer, len);
+        // char buffer[64];
+        // int len = snprintf(buffer, sizeof(buffer), "TID: %d, PID: %d\n", tid, pid);
+        // write(STDOUT_FILENO, buffer, len);
 
         sleep(1);
     }
@@ -161,7 +159,7 @@ int main(int argc, char *argv[]) {
     //
 
 
-    sleep(1);
+    sleep(30);
 
     // for(int i = 0; i < 4; i++) {
     //     printf("Sending SIGINT to thread%d: %p\n",i, (void*)threads[i]);
