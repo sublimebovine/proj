@@ -9,7 +9,11 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <sys/types.h>
+#if __linux
 #include <sys/syscall.h>
+#elif defined(_WIN32) || defined(_WIN64)
+#include <windows.h>       // Or something like it. 
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +23,7 @@
 void* proc(void* arg) {
     int sum=0;
     for(int i=0;i!=11;i++){
-    pid_t tid = syscall(SYS_gettid);
+    pid_t tid = getpid();
     sum=sum+i*tid;
     sleep(1);
     }
