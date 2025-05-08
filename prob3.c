@@ -34,7 +34,7 @@ void SIGINT_handler(int signo, siginfo_t *info, void *context){
 
 
 void* proc(void* arg) {
-    sleep(1);
+    sleep(3);
     // Set up signal handling for threads
         sigset_t mask_set;
 
@@ -64,7 +64,7 @@ void* proc(void* arg) {
 }
 
 void* proc2(void* arg) {
-    sleep(1);
+    sleep(3);
 
     // Set up signal handling for threads
         sigset_t mask_set;
@@ -96,8 +96,11 @@ void* proc2(void* arg) {
         sleep(1);
     }
 
-    
+
 }
+
+pthread_t main_thread;
+pid_t mainTid;
 
 int main(int argc, char *argv[]) {
     //ignore all signals
@@ -122,8 +125,8 @@ int main(int argc, char *argv[]) {
 
 
 
-    static pthread_t main_thread = pthread_self();
-    static pid_t mainTid = gettid();
+    main_thread = pthread_self();
+    mainTid = gettid();
     printf("Main thread ID: %d, Pid: %d\n", mainTid, getpid());
 
     //make threads
@@ -160,26 +163,26 @@ int main(int argc, char *argv[]) {
 
     sleep(1);
 
-    for(int i = 0; i < 4; i++) {
-        printf("Sending SIGINT to thread%d: %p\n",i, (void*)threads[i]);
-        pthread_kill(threads[i], SIGINT);
-        sleep(1);
-        printf("Sending SIGCHLD to thread%d: %p\n",i, (void*)threads[i]);
-        pthread_kill(threads[i], SIGCHLD);
-        sleep(1);
-        printf("Sending SIGHUP to thread%d: %p\n",i,  (void*)threads[i]);
-        pthread_kill(threads[i], SIGHUP);
-        sleep(1);
-        printf("Sending SIGTSTP to thread%d: %p\n", i,(void*)threads[i]);
-        pthread_kill(threads[i], SIGTSTP);
-        sleep(1);
-        printf("Sending SIGSEGV to thread%d: %p\n",i, (void*)threads[i]);
-        pthread_kill(threads[i], SIGSEGV);
-        sleep(1);
-        printf("Sending SIGFPE to thread%d: %p\n",i, (void*)threads[i]);
-        pthread_kill(threads[i], SIGFPE);
-        sleep(1);
-    }
+    // for(int i = 0; i < 4; i++) {
+    //     printf("Sending SIGINT to thread%d: %p\n",i, (void*)threads[i]);
+    //     pthread_kill(threads[i], SIGINT);
+    //     sleep(1);
+    //     printf("Sending SIGCHLD to thread%d: %p\n",i, (void*)threads[i]);
+    //     pthread_kill(threads[i], SIGCHLD);
+    //     sleep(1);
+    //     printf("Sending SIGHUP to thread%d: %p\n",i,  (void*)threads[i]);
+    //     pthread_kill(threads[i], SIGHUP);
+    //     sleep(1);
+    //     printf("Sending SIGTSTP to thread%d: %p\n", i,(void*)threads[i]);
+    //     pthread_kill(threads[i], SIGTSTP);
+    //     sleep(1);
+    //     printf("Sending SIGSEGV to thread%d: %p\n",i, (void*)threads[i]);
+    //     pthread_kill(threads[i], SIGSEGV);
+    //     sleep(1);
+    //     printf("Sending SIGFPE to thread%d: %p\n",i, (void*)threads[i]);
+    //     pthread_kill(threads[i], SIGFPE);
+    //     sleep(1);
+    // }
 
     sleep(1);
 

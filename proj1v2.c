@@ -96,10 +96,7 @@ int main(int argc, char *argv[]) {
     //make threads
         pthread_t threads[4];
         for (int i = 0; i < 4; i++) {
-            if (i < 2)
-                pthread_create(&threads[i], NULL, proc, NULL);
-            else
-                pthread_create(&threads[i], NULL, proc2, NULL);
+            pthread_create(&threads[i], NULL, proc, NULL);
         }
     //
     
