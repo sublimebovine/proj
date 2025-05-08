@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
     mainTid = gettid();
     printf("Main thread ID: %d, Pid: %d\n", mainTid, getpid());
 
-    sleep(1);
+    sleep(10);
 
     //make threads
         static pthread_t threads[4];
