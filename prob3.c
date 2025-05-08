@@ -25,17 +25,16 @@ void SIGINT_handler(int signo, siginfo_t *info, void *context){
 
     //write(STDOUT_FILENO,"hi I",2);
     printf("Received signal %d\n", signo);
-    printf("Recipient PID: %d\nRecipient TID: %ld\n", getpid(), gettid());
+    printf("\tRecipient PID: %d\n\tRecipient TID: %ld\n", getpid(), gettid());
     if (info != NULL) {
-        printf("Sender PID: %d\n", info->si_pid);
+        printf("\tSender PID: %d\n", info->si_pid);
     }
-
-    return;
 }
 
 
 
 void* proc(void* arg) {
+    sleep(1);
     // Set up signal handling for threads
         sigset_t mask_set;
 
@@ -45,7 +44,7 @@ void* proc(void* arg) {
         sigdelset(&mask_set, SIGQUIT);
         sigdelset(&mask_set, SIGTSTP);
 
-        thread_sigmask(SIG_SETMASK, &mask_set, NULL);
+        pthread_sigmask(SIG_SETMASK, &mask_set, NULL);
     //
 
     pid_t tid = gettid();
@@ -62,24 +61,25 @@ void* proc(void* arg) {
         sleep(1);
     }
     
-    return;
 }
 
 void* proc2(void* arg) {
+    sleep(1);
+
     // Set up signal handling for threads
         sigset_t mask_set;
 
         sigfillset(&mask_set);
 
-        sigdelset(&mask_set2, SIGCHLD);
-        sigdelset(&mask_set2, SIGHUP);
-        sigdelset(&mask_set2, SIGTSTP);
-        sigdelset(&mask_set2, SIGSEGV);
-        sigdelset(&mask_set2, SIGFPE);
+        sigdelset(&mask_set, SIGCHLD);
+        sigdelset(&mask_set, SIGHUP);
+        sigdelset(&mask_set, SIGTSTP);
+        sigdelset(&mask_set, SIGSEGV);
+        sigdelset(&mask_set, SIGFPE);
         //all other signals are still blocked from main thread
         //blocked signals include SIGHUP, SIGTSTP
         
-        thread_sigmask(SIG_SETMASK, &mask_set, NULL);
+        pthread_sigmask(SIG_SETMASK, &mask_set, NULL);
     //
 
     pid_t tid = gettid();
@@ -95,25 +95,47 @@ void* proc2(void* arg) {
 
         sleep(1);
     }
-    
-    return;
 }
 
 int main(int argc, char *argv[]) {
-    // Set up signal blocking for main thread
-        sigset_t fullset;
-        sigfillset(&fullset);
-        pthread_sigmask(SIG_BLOCK, &fullset, NULL);
+    //ignore all signals
+        struct sigaction sigac;
+        memset(&sigac, 0, sizeof(sigac));
+        sigac.sa_handler = SIG_IGN;
+        sigemptyset(&sigac.sa_mask);
+        sigac.sa_flags = 0;
+
+        // Loop through valid signals (1 to NSIG-1)
+        for (int sig = 1; sig < NSIG; sig++) {
+            if (sig == SIGKILL || sig == SIGSTOP) {
+                continue;
+            }
+
+            if (sigaction(sig, &sigac, NULL) == -1) {
+                fprintf(stderr, "Could not ignore signal %d\n", sig);
+            }
+        }
     //
+
+
+
 
     pthread_t main_thread = pthread_self();
     pid_t mainTid = gettid();
     printf("Main thread ID: %d, Pid: %d\n", mainTid, getpid());
+
+    //make threads
+        pthread_t threads[4];
+        for (int i = 0; i < 4; i++) {
+            if (i < 2)
+                pthread_create(&threads[i], NULL, proc, NULL);
+            else
+                pthread_create(&threads[i], NULL, proc2, NULL);
+        }
+    //
     
     //signal(SIGINT, SIGINT_handler);
     //setup handler
-        struct sigaction sigac;
-        memset(&sigac, 0, sizeof(sigac));
         sigac.sa_sigaction = SIGINT_handler;
         sigac.sa_flags = SA_SIGINFO | SA_RESTART;
 
@@ -133,20 +155,6 @@ int main(int argc, char *argv[]) {
         sigaction(SIGCHLD, &sigac, NULL);
     //
 
-    //Signal unblocking for main thread
-        sigset_t emptyset;
-        sigemptyset(&emptyset);
-        pthread_sigmask(SIG_SETMASK, &emptyset, NULL);
-    //
-
-
-    //make threads
-        pthread_t threads[4];
-        for(int i = 0; i < 4; i++) {
-            pthread_create(&threads[i], NULL, proc, NULL);
-            printf("thread%d: %p at memory address: %p\n", i,(void*)threads[i],(void*)&threads[i]);      
-        }
-    //
 
     sleep(1);
 
@@ -157,10 +165,10 @@ int main(int argc, char *argv[]) {
         printf("Sending SIGCHLD to thread%d: %p\n",i, (void*)threads[i]);
         pthread_kill(threads[i], SIGCHLD);
         sleep(1);
-        printf("Sending SIGHUP to thread%d: %p\n", (void*)threads[i]);
+        printf("Sending SIGHUP to thread%d: %p\n",i,  (void*)threads[i]);
         pthread_kill(threads[i], SIGHUP);
         sleep(1);
-        printf("Sending SIGTSTP to thread%d: %p\n", (void*)threads[i]);
+        printf("Sending SIGTSTP to thread%d: %p\n", i,(void*)threads[i]);
         pthread_kill(threads[i], SIGTSTP);
         sleep(1);
         printf("Sending SIGSEGV to thread%d: %p\n",i, (void*)threads[i]);
@@ -178,12 +186,12 @@ int main(int argc, char *argv[]) {
     }
 
     //Restore default signal handlers
-        struct sigaction sa;
-        sa.sa_handler = SIG_DFL;
-        sigemptyset(&sa.sa_mask);
-        sa.sa_flags = 0;
+        sigac.sa_handler = SIG_DFL;
+        sigemptyset(&sigac.sa_mask);
+        sigac.sa_flags = 0;
     //
 
     sleep(10);
 
+    return 0;
 }
