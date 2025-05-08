@@ -185,10 +185,7 @@ int main(int argc, char *argv[]) {
     sleep(5);
     printf("Pending for main:\n");
     printPending(pending);
-    //make threads
-        static pthread_t threads[4];
-        makeThreads(threads, 4);
-    //
+    
     
     //signal(SIGINT, SIGINT_handler);
     //setup handler
@@ -210,6 +207,11 @@ int main(int argc, char *argv[]) {
         sigaction(SIGHUP, &sigac, NULL);
         sigaction(SIGTSTP, &sigac, NULL);
         sigaction(SIGCHLD, &sigac, NULL);
+    //
+
+    //make threads
+        static pthread_t threads[4];
+        makeThreads(threads, 4);
     //
 
     //unblock SIGINT, SIGQUIT, SIGTSTP
