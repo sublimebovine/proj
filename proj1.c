@@ -14,6 +14,7 @@
 
 #if __linux
     #include <sys/syscall.h>
+    #define gettid() syscall(SYS_gettid)
 #elif defined(_WIN32) || defined(_WIN64)
     #include <windows.h>       // Or something like it. 
     #define gettid() GetCurrentThreadId()
