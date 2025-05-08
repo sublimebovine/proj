@@ -41,8 +41,9 @@ void* proc(void* arg) {
         sigfillset(&mask_set);
         
         sigdelset(&mask_set, SIGINT);
-        sigdelset(&mask_set, SIGQUIT);
+        sigdelset(&mask_set, SIGABRT);
         sigdelset(&mask_set, SIGTSTP);
+        sigdelset(&mask_set, SIGILL);
 
         pthread_sigmask(SIG_SETMASK, &mask_set, NULL);
     //
@@ -73,7 +74,6 @@ void* proc2(void* arg) {
 
         sigdelset(&mask_set, SIGCHLD);
         sigdelset(&mask_set, SIGHUP);
-        sigdelset(&mask_set, SIGTSTP);
         sigdelset(&mask_set, SIGSEGV);
         sigdelset(&mask_set, SIGFPE);
         //all other signals are still blocked from main thread
