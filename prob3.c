@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
     mainTid = gettid();
     printf("Main thread ID: %d, Pid: %d\n", mainTid, getpid());
     
-    sleep(10);
+    sleep(5);
     printf("Pending for main:\n");
     printPending(pending);
     //make threads
