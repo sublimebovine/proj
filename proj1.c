@@ -26,16 +26,13 @@
 
 void* proc(void* arg) {
     int sum=0;
-    for(int i=0;i!=11+1;i++){
+    for(int i=0;i!=11;i++){
     pid_t tid = syscall(SYS_gettid);
     sum=sum+i*tid;
     sleep(1);
     }
     return NULL;
 }
-
-
-
 
 int main(int argc, char *argv[]) {
 pthread_t thread1;
